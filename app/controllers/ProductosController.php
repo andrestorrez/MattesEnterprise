@@ -42,6 +42,16 @@ class ProductosController extends \BaseController {
 	public function store()
 	{
 		$validator = Validator::make($data = Input::all(), Producto::$rules);
+		if (Input::get('NewCategory')!=""){
+			$categoria= new Categoria;
+			$categoria->Nombre=Input::get('NewCategory');
+			if (!$categoria->save()){
+				return Redirect::back()->withErrors($validator)->withInput();
+			}else{
+				$data['Categoria_Id']=$categoria->Id;
+			}
+		}
+
 
 		if ($validator->fails())
 		{

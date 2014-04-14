@@ -53,11 +53,19 @@
 		    </div>
 		      <div class="col-md-7 col-xs-10">
 		         {{Form::select('Categoria_Id',Categoria::lists('Nombre','Id'))}}
+		         {{Form::text('NewCategory',null,array('style'=>'display: none;'))}}
 		      </div>
 		      <div>
-				<button type="button"  class="btn btn-primary label-control">
+				<button id="addCategory" type="button"  class="btn btn-primary label-control">
 					<i class="glyphicon glyphicon-plus"></i></button>
 				</div>
+		    </div>
+		    <div class="form-group">
+		    	 {{Form::label('image','Photos:')}}
+		    	<div class="col-md-7">
+		    		<input name="image" type="file" id="image" class="form-control" multiple accept="image/*">
+		    	</div>
+
 		    </div>
 
 		     <div class="form-group">
@@ -71,6 +79,21 @@
 		  </fieldset>
 
 	{{ Form::close() }}
+
+
+<form enctype="multipart/form-data" method="post" action="upload.php">
+    <div class="row">
+      <label for="fileToUpload">Select Files to Upload</label><br />
+      <input type="file" name="filesToUpload[]" id="filesToUpload" multiple="multiple" />
+      <output id="filesInfo"></output>
+    </div>
+    <div class="row">
+      <input class="btn btn-success" type="submit" value="Upload" />
+    </div>
+</form>
+
+<div id="dropTarget" style="width: 100%; height: 100px; border: 1px #ccc solid; padding: 10px;">Drop some files here</div>
+<output id="filesInfo"></output>
 </div>
 
 
@@ -82,6 +105,39 @@
 		$('input').addClass('form-control');
 		$('textarea').addClass('form-control');
 		$('select').addClass('form-control');
+
+		$('#addCategory').on('click',function(){
+			var txt=$('[name="NewCategory"]');
+			var select=$('#Categoria_Id');
+			if (txt.is(':visible')){
+				txt.hide();
+				txt.val('');
+				select.fadeIn();
+			}else{
+				select.hide();
+				txt.fadeIn();
+				txt.focus();
+				
+			}
+		});
+
+
+function fileSelect(evt) {
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+        var files = evt.target.files;
+        var result = '';
+        var file;
+    for (var i = 0; file = files[i]; i++) {
+        result += '<li>' + file.name + ' ' + file.size + ' bytes</li>';
+        }
+    document.getElementById('filesInfo').innerHTML = '<ul>' + result + '</ul>';
+    } else {
+    alert('The File APIs are not fully supported in this browser.');
+    }
+}
+document.getElementById('filesToUpload').addEventListener('change', fileSelect, false);
+
+
 	});
 </script>
 
