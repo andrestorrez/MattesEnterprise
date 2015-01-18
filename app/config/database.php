@@ -1,5 +1,12 @@
 <?php
 
+$url = parse_url(getenv("DATABASE_URL"));
+
+$host = $url["host"];
+$username = $url["user"];
+$password = $url["pass"];
+$database = substr($url["path"], 1);
+
 return array(
 
 	/*
@@ -26,7 +33,7 @@ return array(
 	|
 	*/
 
-	'default' => 'mysql',
+	'default' => 'psql',
 
 	/*
 	|--------------------------------------------------------------------------
@@ -48,7 +55,7 @@ return array(
 
 		
 
-		'mysql' => array(
+		/*'mysql' => array(
 			'driver'    => 'mysql',
 			'host'      => 'localhost:3306',
 			'database'  => 'mattesEnterprise',
@@ -57,25 +64,25 @@ return array(
 			'charset'   => 'utf8',
 			'collation' => 'utf8_unicode_ci',
 			'prefix'    => '',
-		),
+		),*/
 
 		/*'sqlite' => array(
 			'driver'   => 'sqlite',
 			'database' => __DIR__.'/../database/production.sqlite',
 			'prefix'   => '',
-		),
+		),*/
 
 		'pgsql' => array(
-			'driver'   => 'pgsql',
-			'host'     => 'localhost',
-			'database' => 'database',
-			'username' => 'root',
-			'password' => '',
-			'charset'  => 'utf8',
-			'prefix'   => '',
-			'schema'   => 'public',
-		),
-
+        'driver'   => 'pgsql',
+        'host'     => $host,
+        'database' => $database,
+        'username' => $username,
+        'password' => $password,
+        'charset'  => 'utf8',
+        'prefix'   => '',
+        'schema'   => 'public',
+    ),
+/*
 		'sqlsrv' => array(
 			'driver'   => 'sqlsrv',
 			'host'     => 'localhost',
