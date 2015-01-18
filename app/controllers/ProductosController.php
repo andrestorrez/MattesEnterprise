@@ -11,15 +11,28 @@ class ProductosController extends \BaseController {
 	public function index()
 	{
 		$categorias = Categoria::all();
-		$listaProductos=array();
-
 		$breadcrumbs=$this->breadcrumbs;
-		foreach ($categorias as $categoria) {
-			$list["".$categoria->Id]=$categoria->Productos()->get();
-		}
-		return View::make('productos.index', compact('listaProductos','breadcrumbs'));
+		return View::make('productos.index', compact('categorias','breadcrumbs'));
 	}
 
+	public function search(){
+		$categorias = Categoria::all();
+		$word=Input::get('search');
+		$breadcrumbs=$this->breadcrumbs;
+		$listaProductos = Producto::where('Nombre','Like','%'.$word.'%')->paginate(12);
+		return View::make('productos.index',compact('listaProductos','breadcrumbs','categorias'));
+	}
+
+	public function categoria($id){
+		$categorias = Categoria::all();
+		$categoria=$categorias->find($id);
+		$listaProductos=$categoria->Productos()->get();
+		array_push($this->breadcrumbs,array('name'=>'Categoria'));
+		$breadcrumbs=$this->breadcrumbs;
+
+		return View::make('productos.index',compact('listaProductos','breadcrumbs','categorias'));
+
+	}
 	/**
 	 * Show the form for creating a new producto
 	 *
@@ -41,26 +54,58 @@ class ProductosController extends \BaseController {
 	 */
 	public function store()
 	{
-		$validator = Validator::make($data = Input::all(), Producto::$rules);
-		if (Input::get('NewCategory')!=""){
-			$categoria= new Categoria;
-			$categoria->Nombre=Input::get('NewCategory');
-			if (!$categoria->save()){
+		
+		$rules=Producto::$rules;
+
+		//return json_encode(Input::all());
+		if (Input::get('Nombre_categoria')!=""){
+			
+			$validator = Validator::make($data = Input::all(), array('Nombre_categoria'=>'unique:Categoria,Nombre'));
+			if ($validator->fails()){
 				return Redirect::back()->withErrors($validator)->withInput();
 			}else{
+				$categoria= new Categoria;
+				$categoria->Nombre=Input::get('Nombre_categoria');
+				$categoria->save();
+				$rules['Categoria_Id']="";
 				$data['Categoria_Id']=$categoria->Id;
+				Input::merge(array('Categoria_Id'=>$categoria->Id));
 			}
+			
 		}
-
-
+		$validator = Validator::make($data = Input::all(), $rules);
 		if ($validator->fails())
 		{
 			return Redirect::back()->withErrors($validator)->withInput();
 		}
 
-		Producto::create($data);
 
-		return Redirect::route('productos.index');
+		$producto= Producto::create($data);
+		
+		File::makeDirectory($path=public_path().'/img/productos/'.$producto->Id);
+		$this->saveImages($path);
+		return $this->categoria($producto->Categoria_Id);
+	}
+
+	public function upload(){
+		if (Input::hasFile('image')){
+			$image=Image::make(Input::file('image')->getRealPath())->resize(320,240,true);
+			$type = Input::file('image')->getClientOriginalExtension();
+			return Response::json(array('image'=> 'data:image/' . $type . ';base64,' . base64_encode($image)));
+		}else{
+			return false;
+		}
+	}
+
+	public function saveImages($path){
+		$name='img-ch-';
+		for ($i=1; Input::hasFile($name.$i); $i++) { 
+					$file=Input::file($name.$i);
+					$image=Image::make($file->getRealPath())
+						->resize(320,240,true)
+						->crop(Input::get('w-'.$name.$i),Input::get('h-'.$name.$i),Input::get('x-'.$name.$i),Input::get('y-'.$name.$i))
+						->save($path.'/'.$i.'.jpg');
+			}
 	}
 
 	/**
@@ -72,8 +117,9 @@ class ProductosController extends \BaseController {
 	public function show($id)
 	{
 		$producto = Producto::findOrFail($id);
-
-		return View::make('productos.show', compact('producto'));
+		array_push($this->breadcrumbs, array('name'=>'Ver'));
+		$breadcrumbs=$this->breadcrumbs;
+		return View::make('productos.show', compact('producto','breadcrumbs'));
 	}
 
 	/**
@@ -84,9 +130,12 @@ class ProductosController extends \BaseController {
 	 */
 	public function edit($id)
 	{
-		$producto = Producto::find($id);
 
-		return View::make('productos.edit', compact('producto'));
+		$producto = Producto::find($id);
+		array_push($this->breadcrumbs, array('name'=> 'Editar'));
+		$breadcrumbs=$this->breadcrumbs;
+		$route='productos.update';
+		return View::make('productos.edit', compact('producto','breadcrumbs','route'));
 	}
 
 	/**
@@ -95,11 +144,12 @@ class ProductosController extends \BaseController {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function update($id)
+	public function update()
 	{
+		$id=Input::get('Id');
 		$producto = Producto::findOrFail($id);
-
-		$validator = Validator::make($data = Input::all(), Producto::$rules);
+		$rules=str_replace(":Id", $id, Producto::$rules);
+		$validator = Validator::make($data = Input::all(), $rules);
 
 		if ($validator->fails())
 		{
@@ -107,8 +157,9 @@ class ProductosController extends \BaseController {
 		}
 
 		$producto->update($data);
-
-		return Redirect::route('productos.index');
+		$path=public_path().'/img/productos/'.$id;
+		$this->saveImages($path);
+		return $this->categoria($producto->Categoria_Id);
 	}
 
 	/**
@@ -119,9 +170,26 @@ class ProductosController extends \BaseController {
 	 */
 	public function destroy($id)
 	{
-		Producto::destroy($id);
+		$producto=Producto::destroy($id);
 
-		return Redirect::route('productos.index');
+		return Redirect::back();
+	}
+
+	public function deleted()
+	{
+		$productos=Producto::onlyTrashed()->get();
+		array_push($this->breadcrumbs,array('name'=>'descontinuados'));
+		$breadcrumbs=$this->breadcrumbs;
+		return View::make('productos.deleted',compact('productos','breadcrumbs'));
+	}
+
+	public function activar(){
+		$producto=Producto::onlyTrashed()->where('Id',Input::get('id'))->restore();
+		if(!Producto::onlyTrashed()->count()){
+			return Redirect::route('productos.index');
+		}else{
+			return $this->deleted();
+		}
 	}
 
 }

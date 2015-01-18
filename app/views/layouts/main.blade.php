@@ -45,7 +45,7 @@
   }
   /*margin:2% 0 0 .5%;*/  
 </style>
-  <body >
+  <body>
   <div class="row">
    <!--div  class="nav-md col-md-4 col-xs-6 col-md-offset-0 col-xs-offset-5">
         <a href="/"><img src="/img/IMG-20140327-WA0002.jpg" width="30%"></a>
@@ -70,7 +70,7 @@
           <div class="navbar-collapse collapse navbar-inverse-collapse">
             <ul class="nav navbar-nav">
               <li class="active"><a href="/">Inicio</a></li>
-              <li><a href="#">Productos</a></li>
+              <li><a href="{{URL::route('user.productos')}}">Productos</a></li>
               <li><a href="#">Acerca de...</a></li>
               <!--li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
@@ -85,8 +85,8 @@
                 </ul>
               </li-->
             </ul>
-             <form class="navbar-form navbar-left">
-              <input type="text" class="form-control col-lg-8" placeholder="Busca un producto">
+             <form method="get" class="navbar-form navbar-left" action="{{URL::route('user.productos.search')}}">
+              <input name="search" type="search" class="form-control col-lg-8" placeholder="Busca un producto">
             </form>
             <ul class="nav navbar-nav navbar-right">
               @if(Auth::check())

@@ -9,7 +9,7 @@ class UsuariosController extends \BaseController {
 	 */
 	public function index()
 	{
-		$usuarios = Usuario::all();
+		$usuarios = User::all();
 
 		return View::make('usuarios.index', compact('usuarios'));
 	}

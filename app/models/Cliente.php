@@ -1,9 +1,11 @@
 <?php
-
+use Illuminate\Database\Eloquent\SoftDeletingTrait;
 class Cliente extends \Eloquent {
 
 	// Add your validation rules here
-	protected $softDelete = true;
+	 use SoftDeletingTrait;
+
+    protected $dates = ['deleted_at'];
 	public static $rules = array(
 		'No_Identidad' => 'digits:13|unique:Cliente,No_Identidad,:Id',
 		'Nombre'=> 'alpha_spaces|required|max:45',

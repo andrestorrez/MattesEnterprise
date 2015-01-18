@@ -4,8 +4,10 @@
 	"keywords": ["framework", "laravel"],
 	"license": "MIT",
 	"require": {
-		"laravel/framework": "4.1.*",
-		 "way/generators": "2.*"
+		"laravel/framework": "4.2.*",
+		 "way/generators": "2.*",
+		 "intervention/image": "2.*",
+		 "intervention/imagecache": "dev-master"
 	},
 	"autoload": {
 		"classmap": [

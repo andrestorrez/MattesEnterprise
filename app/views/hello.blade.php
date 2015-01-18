@@ -57,7 +57,7 @@
 
            
 
-            {{Form::open(array('route'=>'login','class'=>'form-sigin','role'=>'form'))}}
+            {{Form::open(array('method'=>'post','route'=>'login','class'=>'form-sigin','role'=>'form'))}}
                 <h2 class="form-signin-heading">Por favor ingrese </h2>
                  @if (Session::has('login_errors'))
                  <br>
@@ -70,7 +70,7 @@
                 <div class="form-group">
                 {{Form::text('username','',array('class'=>'form-control','placeholder'=>'Nombre de usuario','required','autofocus','id'=>'username'))}}
                 </div>
-                {{Form::password('password',array('class'=>'form-control','placeholder'=>'Contrasenia','required','id'=>'password'))}}
+                {{Form::password('password',array('class'=>'form-control','placeholder'=>'Contraseña','required','id'=>'password'))}}
                 <br>
                 <label class="checkbox">
                   <input type="checkbox" value="remember-me"> Recordarme

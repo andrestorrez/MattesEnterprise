@@ -31,23 +31,29 @@ class ClientesController extends \BaseController {
 			$inicial=preg_replace("/[^A-Za-z%]/u", "", $inicial);
 			array_push($this->breadcrumbs,array('name'=>$inicial,'active'=>'disabled'));
 
-			$title='Clientes con inicial "'.$inicial.'"';			
-			$clientes = DB::select(DB::raw("SELECT
-				 COUNT(V.id) AS Compras, C.* FROM Cliente AS C 
-				 LEFT JOIN Venta as V 
-				 ON C.Id=V.Cliente_Id
-				 ".$this->condition." AND C.Nombre LIKE CONCAT(:inicial,'%') 
-				 GROUP BY C.Id 
-				 ORDER BY C.Nombre"),array('inicial'=>$inicial));
+			$title='"'.$inicial.'"';			
+			$clientes = Cliente::select(DB::raw('count(Venta.Id) AS Compras, Cliente.*'))
+					->leftJoin('Venta','Cliente.Id','=','Venta.Cliente_Id')
+					->where('Cliente.Nombre','LIKE',$inicial.'%')
+					->groupBy('Cliente.Id')
+					->orderBy('Cliente.Nombre','asc')
+					->paginate(12);
+
 		}else{
-			$title='Mejores Clientes';
-			$clientes = DB::select(DB::raw("SELECT
+			$title='Todos los clientes';
+			$clientes = Cliente::select(DB::raw('count(Venta.Id) AS Compras, Cliente.*'))
+					->leftJoin('Venta','Cliente.Id','=','Venta.Cliente_Id')
+					->groupBy('Cliente.Id')
+					->orderBy('Cliente.Nombre','asc')
+					->paginate(12);
+
+			/*DB::select(DB::raw("SELECT
 				 COUNT(V.id) AS Compras, C.* FROM Cliente AS C 
 				 INNER JOIN Venta as V 
 				 ON C.Id=V.Cliente_Id 
 				 ".$this->condition."
 				 GROUP BY V.Cliente_Id 
-				 ORDER BY Compras DESC LIMIT 6"));
+				 ORDER BY Compras DESC LIMIT 6"));*/
 		}
 		return array('iniciales'=>$iniciales,'clientes'=>$clientes,'breadcrumbs'=>$this->breadcrumbs,'title'=>$title);
 	}
@@ -189,7 +195,18 @@ class ClientesController extends \BaseController {
 
 	public function search(){
 		$search=Input::get('search');
-		$clientes=DB::select(DB::raw("SELECT 
+		$clientes=Cliente::select(DB::raw('count(V.Id) as Compras, Cliente.*'))
+						->leftJoin('Venta as V','Cliente.Id','=','V.Cliente_Id')
+				  ->where('Cliente.Nombre', 'LIKE', '%'.$search.'%')
+				//->orWhere(DB::raw("Cliente.Apellido LIKE CONCAT('%',?,'%')"),$search)
+				//->orWhere(DB::raw("Cliente.E_mail LIKE CONCAT('%',?,'%')"),$search)
+				//->orWhere(DB::raw("Cliente.Telefono_Personal LIKE CONCAT('%',?,'%')"),$search)
+				//->orWhere(DB::raw("Cliente.Telefono_Trabajo LIKE CONCAT('%',?,'%')"),$search)
+				  	->groupBy('Cliente.Id')
+				  	->orderBy('Cliente.Nombre','asc')
+					->paginate(1);
+
+		/*DB::select(DB::raw("SELECT 
 			COUNT(V.id) AS Compras, C.* FROM Cliente as C
 			LEFT JOIN Venta as V 
 		    ON C.Id=V.Cliente_Id
@@ -201,7 +218,7 @@ class ClientesController extends \BaseController {
 				OR C.Telefono_Trabajo LIKE CONCAT('%',?,'%'))
 				GROUP BY C.Id 
 				ORDER BY C.Nombre
-			"),array($search,$search,$search,$search,$search),true);
+			"),array($search,$search,$search,$search,$search),true)->paginate(12);*/
 
 		$data=$this->dataIndex('');
 		$data['clientes']=$clientes;

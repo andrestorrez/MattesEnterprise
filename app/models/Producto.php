@@ -1,7 +1,9 @@
 <?php
-
+use Illuminate\Database\Eloquent\SoftDeletingTrait;
 class Producto extends \Eloquent {
+	 use SoftDeletingTrait;
 
+    protected $dates = ['deleted_at'];
 	// Add your validation rules here
 	public static $rules = [
 		'Nombre' => 'required|alpha_spaces|unique:Producto,Nombre,:Id',
@@ -16,9 +18,10 @@ class Producto extends \Eloquent {
 	protected $fillable = array('Nombre','Cantidad','Costo_Unitario','Precio_Unitario','Descripcion','Categoria_Id');
 	protected $table = "Producto";
 	protected $primaryKey = "Id";
+	
 	//protected $foreingKey ="Categoria_Id";
 
 	public function Categoria(){
-		return $this->belongsTo('Categoria');
+		return $this->belongsTo('Categoria','Categoria_Id');
 	}
 }
